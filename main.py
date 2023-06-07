@@ -51,29 +51,30 @@ def change_client(conn, id, first_name=None, last_name=None, email=None, phone_n
               UPDATE Client SET first_name=%s, last_name=%s, email=%s WHERE id=%s
               RETURNING id, first_name, last_name, email;
               """, (first_name, last_name, email, id))
-        print(cur.fetchall())
-        cur.execute("""
-                UPDATE Phone SET phone_number=%s WHERE id=%s
-                RETURNING client_id, phone_number;
-                """, (phone_number, id))
         return cur.fetchall()
 
 
-def delete_phone(conn, client_id, phone_number):
+def delete_phone(conn, client_id, phone_number=None):
     with conn.cursor() as cur:
         cur.execute("""
                 DELETE FROM Phone WHERE id=%s
                 ;
                 """, (client_id,))
-        return conn.commit()
+        cur.execute("""
+                SELECT * FROM Phone
+                """, (phone_number, client_id,))
+        return cur.fetchall()
 
 
-def delete_client(conn, id):
+def delete_client(conn, id, first_name=None, last_name=None, email=None, phone_number=None):
     with conn.cursor() as cur:
         cur.execute("""
                 DELETE FROM Client WHERE id=%s;
                 """, (id,))
-        return conn.commit()
+        cur.execute("""
+                        SELECT * FROM Client
+                        """, (first_name, last_name, email, id))
+        return cur.fetchall()
 
 
 def find_client(conn, first_name=None, last_name=None, email=None, phone_number=None):
